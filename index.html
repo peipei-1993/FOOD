@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Berlin Foodie 🇩🇪</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eee; text-align: center; padding-top: 50px; }
+        .card { background: white; width: 300px; margin: 20px auto; padding: 20px; border-radius: 15px; shadow: 0 4px 8px rgba(0,0,0,0.1); border-top: 10px solid #D11D1D; }
+        h1 { color: #333; }
+        select { padding: 10px; border-radius: 5px; margin-bottom: 20px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Berlin Food Filter 🥨</h1>
+    <p>我在柏林，我想吃超過：</p>
+    <select id="rating" onchange="checkVibe()">
+        <option value="0">--- 請選擇評分 ---</option>
+        <option value="4.5">4.5 星以上 (名店)</option>
+        <option value="4.7">4.7 星以上 (傳奇)</option>
+    </select>
+
+    <div id="result">
+        </div>
+
+    <script>
+        const foods = [
+            { name: "Mustafa's (Kebab)", star: 4.5 },
+            { name: "Burgermeister (Burger)", star: 4.6 },
+            { name: "Zeit für Brot (Rolls)", star: 4.7 },
+            { name: "CODA (Dessert)", star: 4.8 }
+        ];
+
+        function checkVibe() {
+            const val = document.getElementById('rating').value;
+            const res = document.getElementById('result');
+            const filtered = foods.filter(f => f.star >= val);
+            
+            res.innerHTML = filtered.map(f => `
+                <div class="card">
+                    <strong>${f.name}</strong><br>
+                    Score: ${f.star} ⭐
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
