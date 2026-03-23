@@ -1,47 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Berlin Foodie 🇩🇪</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berlin Food Guide 🥨</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eee; text-align: center; padding-top: 50px; }
-        .card { background: white; width: 300px; margin: 20px auto; padding: 20px; border-radius: 15px; shadow: 0 4px 8px rgba(0,0,0,0.1); border-top: 10px solid #D11D1D; }
-        h1 { color: #333; }
-        select { padding: 10px; border-radius: 5px; margin-bottom: 20px; width: 200px; }
+        body { font-family: 'Inter', -apple-system, sans-serif; margin: 0; background: #fafafa; color: #1a1a1a; text-align: center; }
+        .hero { background: #000; color: #fff; padding: 60px 20px; }
+        .container { max-width: 600px; margin: -30px auto 40px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h1 { font-size: 2rem; margin-bottom: 10px; }
+        select { width: 100%; padding: 12px; margin: 20px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; }
+        .card { text-align: left; padding: 15px; border-bottom: 1px solid #eee; transition: 0.2s; }
+        .card:hover { background: #fdfdfd; }
+        .tag { font-size: 11px; background: #E8F5E9; color: #2E7D32; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .rating { color: #f39c12; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Berlin Food Filter 🥨</h1>
-    <p>我在柏林，我想吃超過：</p>
-    <select id="rating" onchange="checkVibe()">
-        <option value="0">--- 請選擇評分 ---</option>
-        <option value="4.5">4.5 星以上 (名店)</option>
-        <option value="4.7">4.7 星以上 (傳奇)</option>
+
+<div class="hero">
+    <h1>Berlin Food Guide</h1>
+    <p>Curated list of Berlin's finest spots.</p>
+</div>
+
+<div class="container">
+    <label for="rating-select">Minimum Rating:</label>
+    <select id="rating-select" onchange="filterVenues()">
+        <option value="0">All Ratings</option>
+        <option value="4.5">4.5+ ⭐ Local Favorites</option>
+        <option value="4.7">4.7+ ⭐ Legendary Spots</option>
     </select>
 
-    <div id="result">
+    <div id="results">
         </div>
+</div>
 
-    <script>
-        const foods = [
-            { name: "Mustafa's (Kebab)", star: 4.5 },
-            { name: "Burgermeister (Burger)", star: 4.6 },
-            { name: "Zeit für Brot (Rolls)", star: 4.7 },
-            { name: "CODA (Dessert)", star: 4.8 }
-        ];
+<script>
+    const venues = [
+        { name: "Mustafa's Gemüse Kebap", star: 4.5, type: "Kebab", area: "Kreuzberg" },
+        { name: "Zeit für Brot", star: 4.7, type: "Bakery", area: "Mitte" },
+        { name: "Burgermeister", star: 4.6, type: "Burgers", area: "Schlesisches Tor" },
+        { name: "Standard Serious Pizza", star: 4.5, type: "Pizza", area: "Prenzlauer Berg" },
+        { name: "CODA", star: 4.8, type: "Dessert Dining", area: "Neukölln" },
+        { name: "The Barn", star: 4.4, type: "Coffee Roastery", area: "Mitte" }
+    ];
 
-        function checkVibe() {
-            const val = document.getElementById('rating').value;
-            const res = document.getElementById('result');
-            const filtered = foods.filter(f => f.star >= val);
-            
-            res.innerHTML = filtered.map(f => `
-                <div class="card">
-                    <strong>${f.name}</strong><br>
-                    Score: ${f.star} ⭐
-                </div>
-            `).join('');
+    function filterVenues() {
+        const min = document.getElementById('rating-select').value;
+        const list = document.getElementById('results');
+        list.innerHTML = "";
+
+        const filtered = venues.filter(v => v.star >= min);
+
+        if (filtered.length === 0) {
+            list.innerHTML = "<p>No spots found with this rating.</p>";
+            return;
         }
-    </script>
+
+        filtered.forEach(v => {
+            list.innerHTML += `
+                <div class="card">
+                    <span class="tag">\${v.type}</span>
+                    <h3 style="margin: 10px 0 5px 0;">\${v.name}</h3>
+                    <span class="rating">\${v.star} ⭐</span> • <span>\${v.area}</span>
+                </div>
+            `;
+        });
+    }
+
+    // Initialize the list
+    filterVenues();
+</script>
+
 </body>
 </html>
