@@ -58,13 +58,13 @@
         }
 
         filtered.forEach(v => {
-            list.innerHTML += `
-                <div class="card">
-                    <span class="tag">\${v.type}</span>
-                    <h3 style="margin: 10px 0 5px 0;">\${v.name}</h3>
-                    <span class="rating">\${v.star} ⭐</span> • <span>\${v.area}</span>
-                </div>
-            `;
+           list.innerHTML += `
+    <div class="card">
+        <span class="tag">${v.type}</span>
+        <h3 style="margin: 10px 0 5px 0;">${v.name}</h3>
+        <span class="rating">${v.star} ⭐</span> • <span>${v.area}</span>
+    </div>
+`;
         });
     }
 
