@@ -1,55 +1,142 @@
-#district-selector {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 15px;
-}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berlin Eat Map | 柏林美食探索</title>
 
-#district-selector h3 {
-    font-size: 18px;
-    border-bottom: 2px solid #333;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 
-/* 卡片容器：用 Grid 讓它自動排成一排三格 */
-.district-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 一排三格 */
-    gap: 15px; /* 格子間距 */
-}
+    <style>
+        /* 全域樣式：Tabelog 的清爽感 */
+        body { margin: 0; font-family: 'Noto Sans TC', sans-serif; background-color: #fafafa; color: #333; }
+        
+        /* 頂部導覽列 */
+        header { 
+            background: white; border-bottom: 1px solid #e6e6e6; 
+            padding: 15px 40px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 1001;
+        }
+        .logo { font-weight: bold; font-size: 22px; color: #ff9600; text-decoration: none; }
 
-/* 每一張卡片的樣式 */
-.district-card {
-    display: flex; /* 圖片和文字左右並排 */
-    align-items: center;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    cursor: pointer;
-    transition: 0.2s;
-}
+        /* 地圖區域：高度固定，讓下方內容可以捲動 */
+        #map-container { height: 450px; width: 100%; border-bottom: 1px solid #eee; background: #eee; }
 
-.district-card:hover {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    border-color: #ff9600; /* 懸停時變 Tabelog 橘色 */
-}
+        /* 內容容器 */
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .section-title { 
+            font-size: 18px; font-weight: bold; margin-bottom: 20px; 
+            border-left: 5px solid #ff9600; padding-left: 10px; 
+        }
 
-.district-card img {
-    width: 80px;
-    height: 60px;
-    object-fit: cover; /* 確保圖片不變形 */
-}
+        /* Tabelog 風格的行政區網格 */
+        .district-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); /* 一排三個 */
+            gap: 15px; 
+        }
 
-.district-card .info {
-    padding-left: 15px;
-}
+        /* 行政區卡片樣式 */
+        .district-card {
+            display: flex; background: white; border: 1px solid #e6e6e6;
+            cursor: pointer; transition: 0.2s; align-items: center;
+        }
+        .district-card:hover { border-color: #ff9600; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        /* 卡片左邊的圖 */
+        .district-img { width: 100px; height: 75px; object-fit: cover; background: #ddd; }
+        
+        /* 卡片右邊的文字 */
+        .district-info { padding: 0 15px; }
+        .district-name { display: block; font-weight: bold; color: #ff9600; text-decoration: underline; font-size: 16px; }
+        .district-count { font-size: 13px; color: #888; margin-top: 5px; }
 
-.district-card .name {
-    display: block;
-    font-weight: bold;
-    color: #333;
-}
+        /* 手機版自動變成一排一個 */
+        @media (max-width: 768px) {
+            .district-grid { grid-template-columns: 1fr; }
+            header { padding: 15px 20px; }
+        }
+    </style>
+</head>
+<body>
 
-.district-card .count {
-    font-size: 12px;
-    color: #999;
-}
+    <header>
+        <a href="#" class="logo">BERLIN EAT MAP 🥨</a>
+        <div style="color: #666; font-size: 14px;">德國 > <span style="color:#333; font-weight:bold;">柏林</span></div>
+    </header>
+
+    <div id="map-container"></div>
+
+    <div class="container">
+        <div class="section-title">按地區搜尋 (柏林行政區)</div>
+        
+        <div class="district-grid">
+            <div class="district-card" onclick="flyToDistrict([52.5200, 13.4050])">
+                <img src="https://images.unsplash.com/photo-1560930950-5cc20e80e392?w=200" class="district-img" alt="Mitte">
+                <div class="district-info">
+                    <span class="district-name">Mitte 米特區</span>
+                    <span class="district-count">1,245 家店</span>
+                </div>
+            </div>
+
+            <div class="district-card" onclick="flyToDistrict([52.4761, 13.4373])">
+                <img src="https://images.unsplash.com/photo-1559564484-e48b3e040ff4?w=200" class="district-img" alt="Neukölln">
+                <div class="district-info">
+                    <span class="district-name">Neukölln 新克爾恩</span>
+                    <span class="district-count">892 家店</span>
+                </div>
+            </div>
+
+            <div class="district-card" onclick="flyToDistrict([52.5683, 13.4022])">
+                <img src="https://images.unsplash.com/photo-1599812326980-05041cc9713c?w=200" class="district-img" alt="Pankow">
+                <div class="district-info">
+                    <span class="district-name">Pankow 潘科區</span>
+                    <span class="district-count">753 家店</span>
+                </div>
+            </div>
+            
+            </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. 初始化地圖：對準德國全境中心
+        var map = L.map('map-container').setView([51.1657, 10.4515], 6);
+
+        // 2. 載入文青淺色地圖皮膚
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // 3. 標註德國六大城市
+        var majorCities = [
+            { name: "柏林 Berlin", pos: [52.5200, 13.4050] },
+            { name: "漢堡 Hamburg", pos: [53.5511, 9.9937] },
+            { name: "慕尼黑 Munich", pos: [48.1351, 11.5820] },
+            { name: "科隆 Cologne", pos: [50.9375, 6.9603] },
+            { name: "法蘭克福 Frankfurt", pos: [50.1109, 8.6821] },
+            { name: "斯圖加特 Stuttgart", pos: [48.7758, 9.1829] }
+        ];
+
+        majorCities.forEach(function(city) {
+            var marker = L.marker(city.pos).addTo(map);
+            marker.bindPopup("<b>" + city.name + "</b><br>點擊下方卡片或標記進入");
+            
+            marker.on('click', function() {
+                map.flyTo(city.pos, 12, { duration: 1.5 });
+            });
+        });
+
+        // 4. 卡片點擊互動：飛入行政區
+        function flyToDistrict(coords) {
+            map.flyTo(coords, 14, {
+                animate: true,
+                duration: 1.2
+            });
+            // 點擊後平滑滾動到頁面最上方，方便看地圖
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
