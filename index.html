@@ -3,65 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Germany Food Explorer 🇩🇪</title>
+    <title>Berlin Food Guide 3.0 🥨</title>
     <style>
-        :root { --de-black: #000000; --de-red: #dd0000; --de-gold: #ffce00; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: #f0f0f0; text-align: center; }
-        
-        .header { background: var(--de-black); color: white; padding: 30px; }
-        
-        /* 德國地圖容器 */
-        .map-container { position: relative; width: 300px; height: 400px; margin: 20px auto; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        svg { width: 100%; height: 100%; fill: #eee; stroke: #ccc; stroke-width: 1; }
-        
-        /* 方向標籤分線 */
-        .direction-line { position: absolute; cursor: pointer; transition: 0.3s; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; background: white; border: 1px solid #ddd; }
-        .direction-line:hover { background: var(--de-red); color: white; border-color: var(--de-red); transform: scale(1.1); }
-        .direction-line.active { background: var(--de-black); color: white; }
+        :root {
+            /* 定義現代、柔和的顏色組合 */
+            --mitte: rgba(144, 202, 249, 0.9);      /* 藍色 */
+            --kreuzberg: rgba(165, 214, 167, 0.9);  /* 綠色 */
+            --pankow: rgba(255, 245, 157, 0.9);     /* 黃色 */
+            --charlottenburg: rgba(244, 143, 177, 0.9); /* 粉色 */
+            --border: rgba(255, 255, 255, 0.5);
+            --bg: #f8f9fa;
+        }
 
-        /* 定位方向按鈕 */
-        .north { top: 10%; left: 50%; transform: translateX(-50%); }
-        .south { bottom: 10%; left: 50%; transform: translateX(-50%); }
-        .west { left: 5%; top: 50%; transform: translateY(-50%); }
-        .east { right: 5%; top: 50%; transform: translateY(-50%); }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); text-align: center; color: #333; }
+        .header { background: #000; color: white; padding: 40px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 2rem; }
 
-        /* 餐廳列表 */
-        .results { max-width: 500px; margin: 0 auto; padding: 20px; }
-        .card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--de-gold); }
+        /* 地圖容器樣式 */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果核心 */
+            border: 1px solid var(--border);
+        }
+
+        /* SVG 區域樣式 */
+        .district {
+            stroke: #fff;
+            stroke-width: 0.5;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .district:hover {
+            transform: scale(1.05); /* 懸停時稍微放大 */
+            fill-opacity: 0.8;
+            stroke-width: 1;
+        }
+        
+        /* 為不同區域指定不同顏色 */
+        #mitte-path { fill: var(--mitte); }
+        #kreuzberg-path { fill: var(--kreuzberg); }
+        #pankow-path { fill: var(--pankow); }
+        #charlottenburg-path { fill: var(--charlottenburg); }
+
+        .results { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 12px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Germany Food Explorer</h1>
-    <p>Select a direction to find local vibes</p>
+    <h1>Berlin Neighborhood Guide</h1>
+    <p>Tap a district on the map to find local vibes.</p>
 </div>
 
-<div class="map-container">
-    <svg viewBox="0 0 100 120">
-        <path id="germany-map" d="M30,10 L70,10 L85,40 L90,80 L70,110 L30,110 L10,80 L15,40 Z" />
+<div class="map-wrapper">
+    <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+        <path id="pankow-path" class="district" d="M30,5 L70,5 L80,25 L50,35 L20,25 Z" onclick="selectDistrict('Pankow', this)" />
+        
+        <path id="mitte-path" class="district" d="M40,30 L60,30 L65,45 L35,45 Z" onclick="selectDistrict('Mitte', this)" />
+        
+        <path id="kreuzberg-path" class="district" d="M65,35 L95,35 L90,60 L65,55 Z" onclick="selectDistrict('Kreuzberg', this)" />
+        
+        <path id="charlottenburg-path" class="district" d="M5,35 L35,35 L35,55 L10,60 Z" onclick="selectDistrict('Charlottenburg', this)" />
     </svg>
-
-    <div class="direction-line north" onclick="filterByDir('North', this)">NORTH (Hamburg)</div>
-    <div class="direction-line south" onclick="filterByDir('South', this)">SOUTH (Munich)</div>
-    <div class="direction-line west" onclick="filterByDir('West', this)">WEST (Cologne)</div>
-    <div class="direction-line east" onclick="filterByDir('East', this)">EAST (Berlin)</div>
 </div>
 
-<h2 id="dir-title">Exploring All Regions</h2>
+<h2 id="district-title">All Spots</h2>
 <div id="results" class="results"></div>
 
 <script>
     const venues = [
-        { name: "Mustafa's Kebab", dir: "East", city: "Berlin", type: "Middle Eastern" },
-        { name: "Zeit für Brot", dir: "East", city: "Berlin", type: "Bakery" },
-        { name: "Hofbräuhaus", dir: "South", city: "Munich", type: "Bavarian" },
-        { name: "Fischmarkt", dir: "North", city: "Hamburg", type: "Seafood" },
-        { name: "Früh am Dom", dir: "West", city: "Cologne", type: "German Brew" }
+        { name: "Mustafa's Kebab", district: "Kreuzberg", type: "Middle Eastern" },
+        { name: "Zeit für Brot", district: "Mitte", type: "Bakery" },
+        { name: "Lon-Men's Noodle House", district: "Charlottenburg", type: "Asian" },
+        { name: "UFO Wedding", district: "Pankow", type: "Asian" }
     ];
 
-    function filterByDir(dir, el) {
-        // UI 更新
-        document.querySelectorAll('.direction-line').forEach(l => l.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById
+    function selectDistrict(districtName, element) {
+        document.getElementById('district-title').innerText = "Vibe in " + districtName;
+        const list = document.getElementById('results');
+        list.innerHTML = "";
+        
+        const filtered = venues.filter(v => v.district === districtName);
+        filtered.forEach(v => {
+            list.innerHTML += `<div class="card"><strong>${v.name}</strong><br>${v.type}</div>`;
+        });
+    }
+</script>
+
+</body>
+</html>
