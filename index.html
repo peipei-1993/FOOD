@@ -1,121 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <title>Berlin Foodie Map - Leaflet Edition</title>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berlin Gastronomy Map 🥨</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; background: #1a1a1a; color: white; text-align: center; }
-        .header { padding: 50px 20px; }
-        
-        /* 地圖區域：調整比例讓它像真正的柏林 */
-        .map-container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        svg { width: 100%; height: auto; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); }
-
-        /* 真實行政區路徑樣式 */
-        .district {
-            fill: #333;
-            stroke: #555;
-            stroke-width: 0.3;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
+        body { margin: 0; font-family: sans-serif; }
+        #map { height: 60vh; width: 100%; } /* 地圖高度佔螢幕 60% */
+        .info-panel { padding: 20px; background: #fff; text-align: center; }
+        .res-card { 
+            background: #f9f9f9; border-left: 5px solid #ff5a5f; 
+            padding: 10px; margin: 10px auto; max-width: 400px; text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        /* 懸停效果：專業的亮色 */
-        .district:hover {
-            fill: #ff5a5f !important;
-            stroke: #fff;
-            stroke-width: 0.8;
-            filter: brightness(1.2);
-        }
-
-        /* 選中後的狀態 */
-        .district.active {
-            fill: #ff5a5f;
-            stroke: #fff;
-        }
-
-        /* 分類按鈕：簡約質感 */
-        .category-wrapper { display: none; margin: 30px auto; gap: 15px; justify-content: center; }
-        .btn-cat { 
-            background: none; border: 1px solid #555; color: #ccc; 
-            padding: 10px 25px; border-radius: 5px; cursor: pointer; transition: 0.3s;
-        }
-        .btn-cat:hover, .btn-cat.active { background: #fff; color: #000; border-color: #fff; }
-
-        .results { max-width: 500px; margin: 20px auto; }
-        .card { background: #222; padding: 20px; border-radius: 4px; text-align: left; margin-bottom: 10px; border-left: 3px solid #ff5a5f; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>BERLIN RESTAURANT MAP</h1>
-    <p style="color: #888;">Select a district to explore local flavors</p>
+<div id="map"></div> <div class="info-panel">
+    <h2 id="area-name">請點擊地圖上的行政區</h2>
+    <div id="restaurant-list"></div>
 </div>
 
-<div class="map-container">
-    <svg viewBox="0 0 120 100">
-        <path class="district" d="M25,5 L48,5 L52,28 L30,35 L15,25 Z" onclick="selectArea('Reinickendorf', this)" />
-        <path class="district" d="M50,5 L80,5 L85,32 L55,38 L48,25 Z" onclick="selectArea('Pankow', this)" />
-        <path class="district" d="M2,28 L23,28 L23,58 L5,62 Z" onclick="selectArea('Spandau', this)" />
-        <path class="district" d="M25,37 L42,37 L38,55 L25,55 Z" onclick="selectArea('Charlottenburg', this)" />
-        <path class="district" d="M44,37 L62,37 L68,48 L40,48 Z" onclick="selectArea('Mitte', this)" />
-        <path class="district" d="M64,37 L88,37 L92,52 L68,52 Z" onclick="selectArea('Friedrichshain-Kreuzberg', this)" />
-        <path class="district" d="M90,37 L115,37 L110,58 L90,58 Z" onclick="selectArea('Lichtenberg', this)" />
-        <path class="district" d="M70,54 L90,54 L85,85 L65,85 Z" onclick="selectArea('Neukölln', this)" />
-        <path class="district" d="M10,60 L35,60 L30,90 L10,85 Z" onclick="selectArea('Steglitz', this)" />
-    </svg>
-</div>
-
-<div id="filter-section" class="category-wrapper">
-    <button class="btn-cat" onclick="filterType('Asian', this)">ASIAN</button>
-    <button class="btn-cat" onclick="filterType('Italian', this)">ITALIAN</button>
-    <button class="btn-cat" onclick="filterType('Middle Eastern', this)">MIDDLE EASTERN</button>
-</div>
-
-<div id="results" class="results"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+    // 3. 初始化地圖：中心點設在柏林 [緯度, 經度]
+    var map = L.map('map').setView([52.5200, 13.4050], 10);
+
+    // 4. 載入地圖底圖 (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 5. 餐廳資料
     const venues = [
-        { name: "Mustafa's Gemüsedöner", area: "Friedrichshain-Kreuzberg", type: "Middle Eastern" },
-        { name: "Lon-Men's Noodle", area: "Charlottenburg", type: "Asian" },
-        { name: "Gazzo Pizza", area: "Neukölln", type: "Italian" },
-        { name: "Zeit für Brot", area: "Mitte", type: "Italian" } // 舉例
+        { name: "Mustafa's Gemüsedöner", area: "Friedrichshain-Kreuzberg", lat: 52.4938, lng: 13.3892 },
+        { name: "Zeit für Brot", area: "Mitte", lat: 52.5236, lng: 13.4042 },
+        { name: "Gazzo Pizza", area: "Neukölln", lat: 52.4842, lng: 13.4215 }
     ];
 
-    let currentArea = "";
+    // 6. 模擬「行政區」功能
+    // 在專業版中，我們會載入 GeoJSON。這裡我們先放 Marker (大頭針) 示範
+    venues.forEach(shop => {
+        L.marker([shop.lat, shop.lng]).addTo(map)
+            .bindPopup(`<b>${shop.name}</b><br>${shop.area}`)
+            .on('click', function() {
+                showDetail(shop.area, shop.name);
+            });
+    });
 
-    function selectArea(name, el) {
-        currentArea = name;
-        document.querySelectorAll('.district').forEach(d => d.classList.remove('active'));
-        el.classList.add('active');
-        
-        // 顯示分類按鈕
-        document.getElementById('filter-section').style.display = 'flex';
-        render();
-    }
-
-    function filterType(type, el) {
-        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        render(type);
-    }
-
-    function render(type = 'All') {
-        const container = document.getElementById('results');
-        container.innerHTML = "";
-        
-        const filtered = venues.filter(v => v.area === currentArea && (type === 'All' || v.type === type));
-        
-        if(filtered.length === 0) {
-            container.innerHTML = "<p style='color:#666'>No restaurants found in this category.</p>";
-            return;
-        }
-
-        filtered.forEach(v => {
-            container.innerHTML += `<div class="card"><strong>${v.name}</strong><br><small>${v.type}</small></div>`;
-        });
+    function showDetail(area, name) {
+        document.getElementById('area-name').innerText = area;
+        document.getElementById('restaurant-list').innerHTML = `
+            <div class="res-card">
+                <strong>${name}</strong><br>
+                這家店在 ${area} 很有名！
+            </div>
+        `;
     }
 </script>
 
