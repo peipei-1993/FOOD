@@ -1,36 +1,55 @@
-<script>
-    // 1. 初始化地圖：設定中心在德國 [51.1657, 10.4515]，縮放層級為 6
-    var map = L.map('main-map').setView([51.1657, 10.4515], 6);
+#district-selector {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
 
-    // 2. 載入文青風格的地圖皮膚 (CartoDB Positron - 淺色簡約版)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+#district-selector h3 {
+    font-size: 18px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
 
-    // 3. 定義六大城市資料 (經緯度)
-    var cities = [
-        { name: "柏林 Berlin", coords: [52.5200, 13.4050], zoom: 12 },
-        { name: "漢堡 Hamburg", coords: [53.5511, 9.9937], zoom: 12 },
-        { name: "慕尼黑 Munich", coords: [48.1351, 11.5820], zoom: 12 },
-        { name: "科隆 Cologne", coords: [50.9375, 6.9603], zoom: 12 },
-        { name: "法蘭克福 Frankfurt", coords: [50.1109, 8.6821], zoom: 12 },
-        { name: "斯圖加特 Stuttgart", coords: [48.7758, 9.1829], zoom: 12 }
-    ];
+/* 卡片容器：用 Grid 讓它自動排成一排三格 */
+.district-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 一排三格 */
+    gap: 15px; /* 格子間距 */
+}
 
-    // 4. 用迴圈把這六個城市「畫」在地圖上
-    cities.forEach(function(city) {
-        // 在地圖上增加一個標記
-        var marker = L.marker(city.coords).addTo(map);
-        
-        // 加上提示文字
-        marker.bindPopup("<b>" + city.name + "</b><br>點擊進入城市地圖");
+/* 每一張卡片的樣式 */
+.district-card {
+    display: flex; /* 圖片和文字左右並排 */
+    align-items: center;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
 
-        // 監聽點擊事件：點了之後「飛過去」
-        marker.on('click', function() {
-            map.flyTo(city.coords, city.zoom, {
-                animate: true,
-                duration: 1.5 // 飛行持續 1.5 秒，很有儀式感
-            });
-        });
-    });
-</script>
+.district-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-color: #ff9600; /* 懸停時變 Tabelog 橘色 */
+}
+
+.district-card img {
+    width: 80px;
+    height: 60px;
+    object-fit: cover; /* 確保圖片不變形 */
+}
+
+.district-card .info {
+    padding-left: 15px;
+}
+
+.district-card .name {
+    display: block;
+    font-weight: bold;
+    color: #333;
+}
+
+.district-card .count {
+    font-size: 12px;
+    color: #999;
+}
