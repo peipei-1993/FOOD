@@ -1,78 +1,123 @@
-<style>
-    .map-container {
-        max-width: 700px;
-        margin: 40px auto;
-        background: #fff;
-        padding: 30px;
-        border-radius: 30px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berlin Gastronomy Map 🥨</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; background: #1a1a1a; color: white; text-align: center; }
+        .header { padding: 50px 20px; }
+        
+        /* 地圖區域：調整比例讓它像真正的柏林 */
+        .map-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        svg { width: 100%; height: auto; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); }
 
-    /* SVG 區塊基本樣式 */
-    .district-path {
-        fill: #efefef;
-        stroke: #fff;
-        stroke-width: 0.8;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
+        /* 真實行政區路徑樣式 */
+        .district {
+            fill: #333;
+            stroke: #555;
+            stroke-width: 0.3;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
 
-    /* 滑鼠移入：變色效果 */
-    .district-path:hover {
-        fill: #ff5a5f; /* 柏林紅 */
-        filter: drop-shadow(0 0 5px rgba(255,90,95,0.5));
-    }
+        /* 懸停效果：專業的亮色 */
+        .district:hover {
+            fill: #ff5a5f !important;
+            stroke: #fff;
+            stroke-width: 0.8;
+            filter: brightness(1.2);
+        }
 
-    /* 被選中時：固定顏色 */
-    .district-path.active {
-        fill: #333;
-        stroke: #000;
-    }
+        /* 選中後的狀態 */
+        .district.active {
+            fill: #ff5a5f;
+            stroke: #fff;
+        }
 
-    .district-name {
-        font-size: 3px;
-        fill: #999;
-        pointer-events: none;
-        text-transform: uppercase;
-        font-weight: bold;
-    }
-</style>
+        /* 分類按鈕：簡約質感 */
+        .category-wrapper { display: none; margin: 30px auto; gap: 15px; justify-content: center; }
+        .btn-cat { 
+            background: none; border: 1px solid #555; color: #ccc; 
+            padding: 10px 25px; border-radius: 5px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-cat:hover, .btn-cat.active { background: #fff; color: #000; border-color: #fff; }
+
+        .results { max-width: 500px; margin: 20px auto; }
+        .card { background: #222; padding: 20px; border-radius: 4px; text-align: left; margin-bottom: 10px; border-left: 3px solid #ff5a5f; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>BERLIN RESTAURANT MAP</h1>
+    <p style="color: #888;">Select a district to explore local flavors</p>
+</div>
 
 <div class="map-container">
-    <h2 id="current-selection">Select a District</h2>
-    
-    <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
-        <path id="Reinickendorf" class="district-path" d="M20,5 L45,5 L50,25 L25,30 Z" onclick="mapClick('Reinickendorf', this)" />
-        <path id="Pankow" class="district-path" d="M46,5 L75,5 L80,25 L51,30 Z" onclick="mapClick('Pankow', this)" />
-
-        <path id="Mitte" class="district-path" d="M40,31 L60,31 L65,45 L35,45 Z" onclick="mapClick('Mitte', this)" />
-        
-        <path id="Spandau" class="district-path" d="M2,25 L24,25 L24,55 L5,60 Z" onclick="mapClick('Spandau', this)" />
-        <path id="Charlottenburg" class="district-path" d="M25,31 L39,31 L34,50 L25,50 Z" onclick="mapClick('Charlottenburg', this)" />
-
-        <path id="Lichtenberg" class="district-path" d="M76,31 L95,31 L100,50 L81,50 Z" onclick="mapClick('Lichtenberg', this)" />
-        <path id="Friedrichshain-Xberg" class="district-path" d="M61,31 L75,31 L80,45 L66,45 Z" onclick="mapClick('Kreuzberg', this)" />
-
-        <path id="Neukölln" class="district-path" d="M66,46 L80,46 L75,70 L60,70 Z" onclick="mapClick('Neukölln', this)" />
-        <path id="Tempelhof" class="district-path" d="M45,46 L65,46 L55,75 L40,70 Z" onclick="mapClick('Tempelhof', this)" />
-        <path id="Steglitz" class="district-path" d="M25,51 L44,51 L35,75 L20,70 Z" onclick="mapClick('Steglitz', this)" />
-        
-        <text x="46" y="38" class="district-name">Mitte</text>
-        <text x="65" y="58" class="district-name">NK</text>
+    <svg viewBox="0 0 120 100">
+        <path class="district" d="M25,5 L48,5 L52,28 L30,35 L15,25 Z" onclick="selectArea('Reinickendorf', this)" />
+        <path class="district" d="M50,5 L80,5 L85,32 L55,38 L48,25 Z" onclick="selectArea('Pankow', this)" />
+        <path class="district" d="M2,28 L23,28 L23,58 L5,62 Z" onclick="selectArea('Spandau', this)" />
+        <path class="district" d="M25,37 L42,37 L38,55 L25,55 Z" onclick="selectArea('Charlottenburg', this)" />
+        <path class="district" d="M44,37 L62,37 L68,48 L40,48 Z" onclick="selectArea('Mitte', this)" />
+        <path class="district" d="M64,37 L88,37 L92,52 L68,52 Z" onclick="selectArea('Friedrichshain-Kreuzberg', this)" />
+        <path class="district" d="M90,37 L115,37 L110,58 L90,58 Z" onclick="selectArea('Lichtenberg', this)" />
+        <path class="district" d="M70,54 L90,54 L85,85 L65,85 Z" onclick="selectArea('Neukölln', this)" />
+        <path class="district" d="M10,60 L35,60 L30,90 L10,85 Z" onclick="selectArea('Steglitz', this)" />
     </svg>
 </div>
 
-<script>
-    function mapClick(name, el) {
-        // 1. 更新標題
-        document.getElementById('current-selection').innerText = "Exploring: " + name;
-        
-        // 2. 清除所有區域的 active 狀態，並把點擊的這區變黑
-        document.querySelectorAll('.district-path').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
+<div id="filter-section" class="category-wrapper">
+    <button class="btn-cat" onclick="filterType('Asian', this)">ASIAN</button>
+    <button class="btn-cat" onclick="filterType('Italian', this)">ITALIAN</button>
+    <button class="btn-cat" onclick="filterType('Middle Eastern', this)">MIDDLE EASTERN</button>
+</div>
 
-        // 3. 呼叫過濾函數 (我們下一步要寫的)
-        filterRestaurantsByArea(name);
+<div id="results" class="results"></div>
+
+<script>
+    const venues = [
+        { name: "Mustafa's Gemüsedöner", area: "Friedrichshain-Kreuzberg", type: "Middle Eastern" },
+        { name: "Lon-Men's Noodle", area: "Charlottenburg", type: "Asian" },
+        { name: "Gazzo Pizza", area: "Neukölln", type: "Italian" },
+        { name: "Zeit für Brot", area: "Mitte", type: "Italian" } // 舉例
+    ];
+
+    let currentArea = "";
+
+    function selectArea(name, el) {
+        currentArea = name;
+        document.querySelectorAll('.district').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        
+        // 顯示分類按鈕
+        document.getElementById('filter-section').style.display = 'flex';
+        render();
+    }
+
+    function filterType(type, el) {
+        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        render(type);
+    }
+
+    function render(type = 'All') {
+        const container = document.getElementById('results');
+        container.innerHTML = "";
+        
+        const filtered = venues.filter(v => v.area === currentArea && (type === 'All' || v.type === type));
+        
+        if(filtered.length === 0) {
+            container.innerHTML = "<p style='color:#666'>No restaurants found in this category.</p>";
+            return;
+        }
+
+        filtered.forEach(v => {
+            container.innerHTML += `<div class="card"><strong>${v.name}</strong><br><small>${v.type}</small></div>`;
+        });
     }
 </script>
-💡 為什麼要學這個概念？
+
+</body>
+</html>
