@@ -3,132 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berlin Food Vibe 🥨</title>
+    <title>Germany Food Explorer 🇩🇪</title>
     <style>
-        :root { --accent: #ff5a5f; --bg: #f8f9fa; --glass: rgba(255, 255, 255, 0.8); }
-        body { font-family: 'Inter', -apple-system, sans-serif; margin: 0; background: var(--bg); color: #333; }
+        :root { --de-black: #000000; --de-red: #dd0000; --de-gold: #ffce00; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f0f0f0; text-align: center; }
         
-        /* Header & Toggle */
-        .header { background: #000; color: white; padding: 40px 20px; text-align: center; }
-        .mode-switch { display: flex; justify-content: center; gap: 10px; margin: -20px auto 20px; }
-        .mode-btn { padding: 12px 25px; border-radius: 30px; border: none; background: white; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-weight: bold; transition: 0.3s; }
-        .mode-btn.active { background: var(--accent); color: white; }
+        .header { background: var(--de-black); color: white; padding: 30px; }
+        
+        /* 德國地圖容器 */
+        .map-container { position: relative; width: 300px; height: 400px; margin: 20px auto; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        svg { width: 100%; height: 100%; fill: #eee; stroke: #ccc; stroke-width: 1; }
+        
+        /* 方向標籤分線 */
+        .direction-line { position: absolute; cursor: pointer; transition: 0.3s; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; background: white; border: 1px solid #ddd; }
+        .direction-line:hover { background: var(--de-red); color: white; border-color: var(--de-red); transform: scale(1.1); }
+        .direction-line.active { background: var(--de-black); color: white; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .section { display: none; }
-        .section.active { display: block; }
+        /* 定位方向按鈕 */
+        .north { top: 10%; left: 50%; transform: translateX(-50%); }
+        .south { bottom: 10%; left: 50%; transform: translateX(-50%); }
+        .west { left: 5%; top: 50%; transform: translateY(-50%); }
+        .east { right: 5%; top: 50%; transform: translateY(-50%); }
 
-        /* 地圖模式佈局 */
-        .map-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 30px; }
-        .grid-item { aspect-ratio: 1; background: var(--glass); border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .grid-item:hover { border-color: var(--accent); transform: translateY(-5px); }
-        .grid-item.selected { background: var(--accent); color: white; }
-        .emoji { font-size: 24px; margin-bottom: 5px; }
-
-        /* 食物分類模式 */
-        .cuisine-list { display: flex; overflow-x: auto; gap: 15px; padding: 10px 5px; scrollbar-width: none; }
-        .cuisine-item { flex: 0 0 auto; background: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cuisine-item.selected { background: #333; color: white; }
-
-        /* 餐廳卡片樣式 */
-        .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-left: 6px solid var(--accent); }
-        .card-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
-        .card-info p { margin: 0; font-size: 0.85rem; color: #666; }
-        .rating-badge { background: #fff3f3; color: var(--accent); padding: 5px 12px; border-radius: 10px; font-weight: bold; }
+        /* 餐廳列表 */
+        .results { max-width: 500px; margin: 0 auto; padding: 20px; }
+        .card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--de-gold); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Berlin Food Explorer</h1>
-    <p>Discover the city by Zone or Cuisine</p>
+    <h1>Germany Food Explorer</h1>
+    <p>Select a direction to find local vibes</p>
 </div>
 
-<div class="mode-switch">
-    <button class="mode-btn active" onclick="switchMode('map')">📍 By Zone</button>
-    <button class="mode-btn" onclick="switchMode('cuisine')">🍕 By Cuisine</button>
+<div class="map-container">
+    <svg viewBox="0 0 100 120">
+        <path id="germany-map" d="M30,10 L70,10 L85,40 L90,80 L70,110 L30,110 L10,80 L15,40 Z" />
+    </svg>
+
+    <div class="direction-line north" onclick="filterByDir('North', this)">NORTH (Hamburg)</div>
+    <div class="direction-line south" onclick="filterByDir('South', this)">SOUTH (Munich)</div>
+    <div class="direction-line west" onclick="filterByDir('West', this)">WEST (Cologne)</div>
+    <div class="direction-line east" onclick="filterByDir('East', this)">EAST (Berlin)</div>
 </div>
 
-<div class="container">
-    <div id="map-section" class="section active">
-        <div class="map-grid">
-            <div class="grid-item" onclick="filterBy('zone', 'North', this)"><span class="emoji">🏢</span>North</div>
-            <div class="grid-item" onclick="filterBy('zone', 'Central', this)"><span class="emoji">🐻</span>Central</div>
-            <div class="grid-item" onclick="filterBy('zone', 'East', this)"><span class="emoji">🎨</span>East</div>
-            <div class="grid-item" onclick="filterBy('zone', 'West', this)"><span class="emoji">🛍️</span>West</div>
-            <div class="grid-item" onclick="filterBy('zone', 'South', this)"><span class="emoji">🌳</span>South</div>
-            <div class="grid-item" onclick="filterBy('zone', 'All', this)"><span class="emoji">🌍</span>All</div>
-        </div>
-    </div>
-
-    <div id="cuisine-section" class="section">
-        <div class="cuisine-list">
-            <div class="cuisine-item selected" onclick="filterBy('type', 'All', this)">All</div>
-            <div class="cuisine-item" onclick="filterBy('type', 'Asian', this)">🍣 Asian</div>
-            <div class="cuisine-item" onclick="filterBy('type', 'Italian', this)">🍝 Italian</div>
-            <div class="cuisine-item" onclick="filterBy('type', 'Middle Eastern', this)">🥙 Middle Eastern</div>
-            <div class="cuisine-item" onclick="filterBy('type', 'Bakery', this)">🥐 Bakery</div>
-        </div>
-    </div>
-
-    <h2 id="filter-title">All Spots</h2>
-    <div id="results"></div>
-</div>
+<h2 id="dir-title">Exploring All Regions</h2>
+<div id="results" class="results"></div>
 
 <script>
     const venues = [
-        { name: "Mustafa's Kebab", type: "Middle Eastern", zone: "South", star: 4.5 },
-        { name: "Zeit für Brot", type: "Bakery", zone: "Central", star: 4.7 },
-        { name: "Shiso Burger", type: "Asian", zone: "Central", star: 4.4 },
-        { name: "Burgermeister", type: "American", zone: "East", star: 4.6 },
-        { name: "Lon-Men's Noodle", type: "Asian", zone: "West", star: 4.6 },
-        { name: "Standard Pizza", type: "Italian", zone: "North", star: 4.5 },
-        { name: "Coda Dessert Bar", type: "Fine Dining", zone: "South", star: 4.8 }
+        { name: "Mustafa's Kebab", dir: "East", city: "Berlin", type: "Middle Eastern" },
+        { name: "Zeit für Brot", dir: "East", city: "Berlin", type: "Bakery" },
+        { name: "Hofbräuhaus", dir: "South", city: "Munich", type: "Bavarian" },
+        { name: "Fischmarkt", dir: "North", city: "Hamburg", type: "Seafood" },
+        { name: "Früh am Dom", dir: "West", city: "Cologne", type: "German Brew" }
     ];
 
-    function switchMode(mode) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(mode + '-section').classList.add('active');
-        event.target.classList.add('active');
-        filterBy('All', 'All'); // 切換時重置
-    }
-
-    function filterBy(criteria, value, el) {
-        const title = document.getElementById('filter-title');
-        const list = document.getElementById('results');
-        
-        // UI 視覺回饋
-        if(el) {
-            const siblings = el.parentElement.children;
-            for(let s of siblings) s.classList.remove('selected');
-            el.classList.add('selected');
-        }
-
-        title.innerText = value === 'All' ? 'All Spots' : `Best in \${value}`;
-        list.innerHTML = "";
-
-        const filtered = venues.filter(v => {
-            if (value === 'All') return true;
-            return criteria === 'zone' ? v.zone === value : v.type === value;
-        });
-
-        filtered.forEach(v => {
-            list.innerHTML += `
-                <div class="card">
-                    <div class="card-info">
-                        <h3>\${v.name}</h3>
-                        <p>\${v.type} • \${v.zone}</p>
-                    </div>
-                    <div class="rating-badge">\${v.star} ⭐</div>
-                </div>
-            `;
-        });
-    }
-
-    // 初始化顯示
-    filterBy('All', 'All');
-</script>
-
-</body>
-</html>
+    function filterByDir(dir, el) {
+        // UI 更新
+        document.querySelectorAll('.direction-line').forEach(l => l.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById
