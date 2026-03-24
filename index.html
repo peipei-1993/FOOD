@@ -1,75 +1,78 @@
 <style>
-    /* 現代深色風格地圖容器 */
-    .map-section {
-        background: #1a1a1a;
-        padding: 40px 20px;
-        border-radius: 24px;
-        margin: 20px auto;
-        max-width: 800px;
+    .map-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
     }
 
-    /* SVG 地圖樣式 */
-    #berlin-svg {
-        width: 100%;
-        height: auto;
-        filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
-    }
-
-    /* 行政區路徑樣式 */
-    .district {
-        fill: #333; /* 預設深灰色 */
-        stroke: #444;
-        stroke-width: 0.5;
+    /* SVG 區塊基本樣式 */
+    .district-path {
+        fill: #efefef;
+        stroke: #fff;
+        stroke-width: 0.8;
         transition: all 0.3s ease;
         cursor: pointer;
     }
 
-    /* 滑鼠移上去的效果 (Hover) */
-    .district:hover {
+    /* 滑鼠移入：變色效果 */
+    .district-path:hover {
         fill: #ff5a5f; /* 柏林紅 */
-        stroke: #fff;
-        filter: brightness(1.2);
+        filter: drop-shadow(0 0 5px rgba(255,90,95,0.5));
     }
 
-    /* 被選中時的效果 (Active) */
-    .district.active {
-        fill: #ff5a5f;
-        stroke: #fff;
-        stroke-width: 1;
+    /* 被選中時：固定顏色 */
+    .district-path.active {
+        fill: #333;
+        stroke: #000;
     }
 
-    .district-label {
-        fill: #888;
+    .district-name {
         font-size: 3px;
+        fill: #999;
         pointer-events: none;
         text-transform: uppercase;
+        font-weight: bold;
     }
 </style>
 
-<div class="map-section">
-    <h2 style="color:white; margin-bottom:30px;">Berlin Gastronomy Map</h2>
-    <svg id="berlin-svg" viewBox="0 0 100 80">
-        <path id="Mitte" class="district" d="M42,32 L58,32 L62,45 L38,45 Z" onclick="handleMapClick('Mitte', this)" />
-        <path id="Pankow" class="district" d="M45,5 L75,5 L80,30 L50,35 L35,25 Z" onclick="handleMapClick('Pankow', this)" />
-        <path id="Friedrichshain-Xberg" class="district" d="M60,35 L85,35 L90,55 L65,50 Z" onclick="handleMapClick('Kreuzberg', this)" />
-        <path id="Charlottenburg" class="district" d="M10,30 L40,30 L35,50 L15,55 Z" onclick="handleMapClick('Charlottenburg', this)" />
-        <path id="Neukölln" class="district" d="M62,52 L88,57 L75,75 L55,75 Z" onclick="handleMapClick('Neukölln', this)" />
+<div class="map-container">
+    <h2 id="current-selection">Select a District</h2>
+    
+    <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+        <path id="Reinickendorf" class="district-path" d="M20,5 L45,5 L50,25 L25,30 Z" onclick="mapClick('Reinickendorf', this)" />
+        <path id="Pankow" class="district-path" d="M46,5 L75,5 L80,25 L51,30 Z" onclick="mapClick('Pankow', this)" />
+
+        <path id="Mitte" class="district-path" d="M40,31 L60,31 L65,45 L35,45 Z" onclick="mapClick('Mitte', this)" />
         
-        <text x="46" y="40" class="district-label">Mitte</text>
-        <text x="55" y="18" class="district-label">Pankow</text>
-        <text x="68" y="45" class="district-label">X-Berg</text>
-        <text x="18" y="42" class="district-label">West</text>
-        <text x="63" y="68" class="district-label">Neukölln</text>
+        <path id="Spandau" class="district-path" d="M2,25 L24,25 L24,55 L5,60 Z" onclick="mapClick('Spandau', this)" />
+        <path id="Charlottenburg" class="district-path" d="M25,31 L39,31 L34,50 L25,50 Z" onclick="mapClick('Charlottenburg', this)" />
+
+        <path id="Lichtenberg" class="district-path" d="M76,31 L95,31 L100,50 L81,50 Z" onclick="mapClick('Lichtenberg', this)" />
+        <path id="Friedrichshain-Xberg" class="district-path" d="M61,31 L75,31 L80,45 L66,45 Z" onclick="mapClick('Kreuzberg', this)" />
+
+        <path id="Neukölln" class="district-path" d="M66,46 L80,46 L75,70 L60,70 Z" onclick="mapClick('Neukölln', this)" />
+        <path id="Tempelhof" class="district-path" d="M45,46 L65,46 L55,75 L40,70 Z" onclick="mapClick('Tempelhof', this)" />
+        <path id="Steglitz" class="district-path" d="M25,51 L44,51 L35,75 L20,70 Z" onclick="mapClick('Steglitz', this)" />
+        
+        <text x="46" y="38" class="district-name">Mitte</text>
+        <text x="65" y="58" class="district-name">NK</text>
     </svg>
 </div>
 
 <script>
-    function handleMapClick(name, element) {
-        // 1. 視覺回饋：移除其他區的 active，給點擊的區加上 active
-        document.querySelectorAll('.district').forEach(d => d.classList.remove('active'));
-        element.classList.add('active');
+    function mapClick(name, el) {
+        // 1. 更新標題
+        document.getElementById('current-selection').innerText = "Exploring: " + name;
+        
+        // 2. 清除所有區域的 active 狀態，並把點擊的這區變黑
+        document.querySelectorAll('.district-path').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
 
-        // 2. 觸發你原本的過濾邏輯
-        filterByDistrict(name); 
+        // 3. 呼叫過濾函數 (我們下一步要寫的)
+        filterRestaurantsByArea(name);
     }
 </script>
+💡 為什麼要學這個概念？
