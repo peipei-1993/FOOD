@@ -1,102 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berlin Food Guide 3.0 🥨</title>
-    <style>
-        :root {
-            /* 定義現代、柔和的顏色組合 */
-            --mitte: rgba(144, 202, 249, 0.9);      /* 藍色 */
-            --kreuzberg: rgba(165, 214, 167, 0.9);  /* 綠色 */
-            --pankow: rgba(255, 245, 157, 0.9);     /* 黃色 */
-            --charlottenburg: rgba(244, 143, 177, 0.9); /* 粉色 */
-            --border: rgba(255, 255, 255, 0.5);
-            --bg: #f8f9fa;
-        }
+<style>
+    /* 現代深色風格地圖容器 */
+    .map-section {
+        background: #1a1a1a;
+        padding: 40px 20px;
+        border-radius: 24px;
+        margin: 20px auto;
+        max-width: 800px;
+    }
 
-        body { font-family: sans-serif; margin: 0; background: var(--bg); text-align: center; color: #333; }
-        .header { background: #000; color: white; padding: 40px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { margin: 0; font-size: 2rem; }
+    /* SVG 地圖樣式 */
+    #berlin-svg {
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+    }
 
-        /* 地圖容器樣式 */
-        .map-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin: 30px auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            backdrop-filter: blur(10px); /* 磨砂玻璃效果核心 */
-            border: 1px solid var(--border);
-        }
+    /* 行政區路徑樣式 */
+    .district {
+        fill: #333; /* 預設深灰色 */
+        stroke: #444;
+        stroke-width: 0.5;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
 
-        /* SVG 區域樣式 */
-        .district {
-            stroke: #fff;
-            stroke-width: 0.5;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-        .district:hover {
-            transform: scale(1.05); /* 懸停時稍微放大 */
-            fill-opacity: 0.8;
-            stroke-width: 1;
-        }
+    /* 滑鼠移上去的效果 (Hover) */
+    .district:hover {
+        fill: #ff5a5f; /* 柏林紅 */
+        stroke: #fff;
+        filter: brightness(1.2);
+    }
+
+    /* 被選中時的效果 (Active) */
+    .district.active {
+        fill: #ff5a5f;
+        stroke: #fff;
+        stroke-width: 1;
+    }
+
+    .district-label {
+        fill: #888;
+        font-size: 3px;
+        pointer-events: none;
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="map-section">
+    <h2 style="color:white; margin-bottom:30px;">Berlin Gastronomy Map</h2>
+    <svg id="berlin-svg" viewBox="0 0 100 80">
+        <path id="Mitte" class="district" d="M42,32 L58,32 L62,45 L38,45 Z" onclick="handleMapClick('Mitte', this)" />
+        <path id="Pankow" class="district" d="M45,5 L75,5 L80,30 L50,35 L35,25 Z" onclick="handleMapClick('Pankow', this)" />
+        <path id="Friedrichshain-Xberg" class="district" d="M60,35 L85,35 L90,55 L65,50 Z" onclick="handleMapClick('Kreuzberg', this)" />
+        <path id="Charlottenburg" class="district" d="M10,30 L40,30 L35,50 L15,55 Z" onclick="handleMapClick('Charlottenburg', this)" />
+        <path id="Neukölln" class="district" d="M62,52 L88,57 L75,75 L55,75 Z" onclick="handleMapClick('Neukölln', this)" />
         
-        /* 為不同區域指定不同顏色 */
-        #mitte-path { fill: var(--mitte); }
-        #kreuzberg-path { fill: var(--kreuzberg); }
-        #pankow-path { fill: var(--pankow); }
-        #charlottenburg-path { fill: var(--charlottenburg); }
-
-        .results { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 12px; text-align: left; }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <h1>Berlin Neighborhood Guide</h1>
-    <p>Tap a district on the map to find local vibes.</p>
-</div>
-
-<div class="map-wrapper">
-    <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
-        <path id="pankow-path" class="district" d="M30,5 L70,5 L80,25 L50,35 L20,25 Z" onclick="selectDistrict('Pankow', this)" />
-        
-        <path id="mitte-path" class="district" d="M40,30 L60,30 L65,45 L35,45 Z" onclick="selectDistrict('Mitte', this)" />
-        
-        <path id="kreuzberg-path" class="district" d="M65,35 L95,35 L90,60 L65,55 Z" onclick="selectDistrict('Kreuzberg', this)" />
-        
-        <path id="charlottenburg-path" class="district" d="M5,35 L35,35 L35,55 L10,60 Z" onclick="selectDistrict('Charlottenburg', this)" />
+        <text x="46" y="40" class="district-label">Mitte</text>
+        <text x="55" y="18" class="district-label">Pankow</text>
+        <text x="68" y="45" class="district-label">X-Berg</text>
+        <text x="18" y="42" class="district-label">West</text>
+        <text x="63" y="68" class="district-label">Neukölln</text>
     </svg>
 </div>
 
-<h2 id="district-title">All Spots</h2>
-<div id="results" class="results"></div>
-
 <script>
-    const venues = [
-        { name: "Mustafa's Kebab", district: "Kreuzberg", type: "Middle Eastern" },
-        { name: "Zeit für Brot", district: "Mitte", type: "Bakery" },
-        { name: "Lon-Men's Noodle House", district: "Charlottenburg", type: "Asian" },
-        { name: "UFO Wedding", district: "Pankow", type: "Asian" }
-    ];
+    function handleMapClick(name, element) {
+        // 1. 視覺回饋：移除其他區的 active，給點擊的區加上 active
+        document.querySelectorAll('.district').forEach(d => d.classList.remove('active'));
+        element.classList.add('active');
 
-    function selectDistrict(districtName, element) {
-        document.getElementById('district-title').innerText = "Vibe in " + districtName;
-        const list = document.getElementById('results');
-        list.innerHTML = "";
-        
-        const filtered = venues.filter(v => v.district === districtName);
-        filtered.forEach(v => {
-            list.innerHTML += `<div class="card"><strong>${v.name}</strong><br>${v.type}</div>`;
-        });
+        // 2. 觸發你原本的過濾邏輯
+        filterByDistrict(name); 
     }
 </script>
-
-</body>
-</html>
