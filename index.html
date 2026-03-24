@@ -1,96 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Berlin District Explorer</title>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { margin: 0; display: flex; flex-direction: column; height: 100vh; font-family: sans-serif; }
-        #map { flex: 2; width: 100%; }
-        #info-panel { flex: 1; padding: 20px; background: #222; color: white; overflow-y: auto; }
-        
-        /* 行政區基本樣式 */
-        .district-style { fillOpacity: 0.5; weight: 2; color: white; fillOpacity: 0.2; }
-        
-        /* 餐廳列表樣式 */
-        .res-item { border-bottom: 1px solid #444; padding: 10px 0; }
-        .res-item h3 { margin: 0; color: #ff5a5f; }
-    </style>
-</head>
-<body>
-
-<div id="map"></div>
-<div id="info-panel">
-    <h2 id="district-name">請點擊柏林地圖區域</h2>
-    <div id="restaurant-list">選擇區域後顯示餐廳...</div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-    // 1. 初始化地圖 (中心設在柏林)
-    const map = L.map('map').setView([52.51, 13.40], 10);
+    // 1. 初始化地圖：設定中心在德國 [51.1657, 10.4515]，縮放層級為 6
+    var map = L.map('main-map').setView([51.1657, 10.4515], 6);
 
-    // 2. 載入專業底圖 (CartoDB Dark 適合展示分區)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // 2. 載入文青風格的地圖皮膚 (CartoDB Positron - 淺色簡約版)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // 3. 餐廳測試數據
-    const venues = [
-        { name: "Mustafa's Gemüsedöner", area: "Friedrichshain-Kreuzberg", type: "Kebab" },
-        { name: "Lon-Men's Noodle", area: "Charlottenburg-Wilmersdorf", type: "Asian" },
-        { name: "Gazzo Pizza", area: "Neukölln", type: "Italian" }
+    // 3. 定義六大城市資料 (經緯度)
+    var cities = [
+        { name: "柏林 Berlin", coords: [52.5200, 13.4050], zoom: 12 },
+        { name: "漢堡 Hamburg", coords: [53.5511, 9.9937], zoom: 12 },
+        { name: "慕尼黑 Munich", coords: [48.1351, 11.5820], zoom: 12 },
+        { name: "科隆 Cologne", coords: [50.9375, 6.9603], zoom: 12 },
+        { name: "法蘭克福 Frankfurt", coords: [50.1109, 8.6821], zoom: 12 },
+        { name: "斯圖加特 Stuttgart", coords: [48.7758, 9.1829], zoom: 12 }
     ];
 
-    // 4. 關鍵：載入柏林行政區 GeoJSON
-    // 這裡我們直接從網路上抓取公開的柏林行政區邊界數據
-    fetch('https://raw.githubusercontent.com/isellsoap/deutschland.geojson/master/2_bundeslaender/11_berlin_beziere.geo.json')
-        .then(res => res.json())
-        .then(data => {
-            L.geoJSON(data, {
-                style: function(feature) {
-                    return { color: "#ff5a5f", weight: 1, fillOpacity: 0.1 };
-                },
-                onEachFeature: function(feature, layer) {
-                    // 當滑鼠移入
-                    layer.on('mouseover', function() {
-                        this.setStyle({ fillOpacity: 0.5, color: "#fff" });
-                    });
-                    // 當滑鼠移出
-                    layer.on('mouseout', function() {
-                        this.setStyle({ fillOpacity: 0.1, color: "#ff5a5f" });
-                    });
-                    // 當點擊區域
-                    layer.on('click', function(e) {
-                        const name = feature.properties.name;
-                        map.fitBounds(e.target.getBounds()); // 自動縮放到該區
-                        showRestaurants(name);
-                    });
-                }
-            }).addTo(map);
-        });
+    // 4. 用迴圈把這六個城市「畫」在地圖上
+    cities.forEach(function(city) {
+        // 在地圖上增加一個標記
+        var marker = L.marker(city.coords).addTo(map);
+        
+        // 加上提示文字
+        marker.bindPopup("<b>" + city.name + "</b><br>點擊進入城市地圖");
 
-    function showRestaurants(area) {
-        document.getElementById('district-name').innerText = "探索：" + area;
-        const list = document.getElementById('restaurant-list');
-        list.innerHTML = "";
-
-        const filtered = venues.filter(v => v.area === area);
-        if(filtered.length === 0) {
-            list.innerHTML = "這區目前還沒有收錄餐廳資料喔！";
-        } else {
-            filtered.forEach(v => {
-                list.innerHTML += `
-                    <div class="res-item">
-                        <h3>${v.name}</h3>
-                        <p>${v.type}</p>
-                    </div>
-                `;
+        // 監聽點擊事件：點了之後「飛過去」
+        marker.on('click', function() {
+            map.flyTo(city.coords, city.zoom, {
+                animate: true,
+                duration: 1.5 // 飛行持續 1.5 秒，很有儀式感
             });
-        }
-    }
+        });
+    });
 </script>
-
-</body>
-</html>
